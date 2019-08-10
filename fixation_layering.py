@@ -40,7 +40,7 @@ if __name__ == '__main__':
     radius = window_size // 2
     for i in range(100):
         positions = get_random_gaze_positions(n, range(width), range(height))
-        print(positions)
+        # print(positions)
         gaze_filter = np.ones(image.shape[:2])
         for pos_x, pos_y in positions:
             left = pos_x-radius
@@ -55,7 +55,7 @@ if __name__ == '__main__':
                 += gaussian_kernel[top_cut:window_size-bottom_cut, left_cut:window_size-right_cut]
             # gaze_filter[left+left_cut:right+1-right_cut, top+top_cut:bottom+1-bottom_cut] = 2
 
-        image_mean = np.mean(image, axis=(0,1))
+        image_mean = np.array([128,128,128])#np.mean(image, axis=(0,1))
         # gaze_filter = np.ones_like(gaze_filter)
         # image_norm = (image - image_mean) / (np.max(image, axis=(0, 1)) - np.min(image, axis=(0, 1)))
         # image_filtered_norm = (gaze_filter[:, :, np.newaxis] * image_norm)
@@ -63,7 +63,7 @@ if __name__ == '__main__':
         image_filtered_float = (gaze_filter[:, :, np.newaxis] * (image-image_mean)) + image_mean
         image_filtered_float -= np.min(image_filtered_float, axis=(0, 1))
         image_filtered = (image_filtered_float / np.max(image_filtered_float, axis=(0, 1)) * 255).astype(np.uint8)
-        image = image_filtered
+        # image = image_filtered
         # image_filtered = ((image_filtered_float + 127.5) / 2).astype(np.uint8)
         # image_filtered = image_filtered / np.max(image_filtered, axis=(0, 1))
 
@@ -74,8 +74,8 @@ if __name__ == '__main__':
         # for pos in positions:
         #     cv2.circle(image_with_circles, pos, 5, (255, 255, 255), thickness=-1)
         # cv2.imshow("im1", image_with_circles)
-        # cv2.imshow("filtered", image_filtered)
-        # key = cv2.waitKey(200)
+        cv2.imshow("filtered", image_filtered)
+        key = cv2.waitKey(200)
         # if key == ord("q"):
         #     break
     # cv2.destroyAllWindows()

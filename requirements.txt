@@ -1,4 +1,6 @@
 numpy
 pyzmq
+msgpack
+psutil
 opencv-python
 imutils

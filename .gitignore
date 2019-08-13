@@ -9,7 +9,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-build/
+testing_stuff/build/
 develop-eggs/
 dist/
 downloads/
@@ -111,8 +111,9 @@ cache/
 *.dat
 *.mp4
 *.avi
-*.png
-*.jpg
+
+# pupil labs
+/eye_tracking/pupil_labs/pupil_capture
 
 
 # credentials

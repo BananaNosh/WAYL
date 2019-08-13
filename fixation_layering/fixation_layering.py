@@ -4,9 +4,9 @@ import cv2
 import numpy as np
 from imutils import resize
 import math
+import pygame
 
 from mock import get_random_gaze_positions
-from partial_convolution import partial_convolve
 
 
 def calculate_gaussian_kernel(sigma=100):
@@ -23,8 +23,23 @@ def calculate_gaussian_kernel(sigma=100):
     #         kernel = x*x + y*y
 
 
+def initialise_screen():
+    pygame.init()
+    if True:
+        os.environ['SDL_VIDEO_WINDOW_POS'] = "0,0"
+        info = pygame.display.Info()
+        _screen = pygame.display.set_mode((info.current_w, info.current_h), pygame.NOFRAME)
+        pygame.mouse.set_visible(0)
+    else:
+        _screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    _screen.fill((255, 255, 255))
+    pygame.display.update()
+    return _screen
+
+
 if __name__ == '__main__':
     width, height = 1200, 675
+    screen = initialise_screen()
     sigma = 240
     n = 10
     deg_per_px = math.degrees(math.atan2(.5 * 18.2, 70)) / (.5 * 675)
@@ -73,9 +88,13 @@ if __name__ == '__main__':
         # image_with_circles = np.copy(original_image)
         # for pos in positions:
         #     cv2.circle(image_with_circles, pos, 5, (255, 255, 255), thickness=-1)
-        # cv2.imshow("im1", image_with_circles)
-        cv2.imshow("filtered", image_filtered)
-        key = cv2.waitKey(200)
+        # cv2.imshow("im1", image)
+        # cv2.imshow("filtered", image_filtered)
+        # key = cv2.waitKey(200)
+        pygame_image = np.rot90(image_filtered)
+        pygame_image = cv2.cvtColor(pygame_image, cv2.COLOR_BGR2RGB)
+        screen.blit(pygame.surfarray.make_surface(pygame_image), (0, 0))
+        pygame.display.update()
         # if key == ord("q"):
         #     break
     # cv2.destroyAllWindows()

@@ -4,3 +4,4 @@ msgpack
 psutil
 opencv-python
 imutils
+pygame

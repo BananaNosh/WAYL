@@ -4,7 +4,7 @@ import pygame
 
 
 class SurfaceMarkerCreator(object):
-    def __init__(self, markers=None, marker_path="player/eye_tracking/markers", marker_prefix="marker_"):
+    def __init__(self, markers=None, marker_path="eye_tracking/markers", marker_prefix="marker_"):
         """
         A class for drawing the given markers on the edges of a surface
         Args:
@@ -55,7 +55,7 @@ class SurfaceMarkerCreator(object):
             pygame.draw.rect(game_surface, (255, 255, 255),
                              [x - border_x,
                               y - border_y,
-                              marker_size[0] + 2 * border_x,
-                              marker_size[1] + 2 * border_y])
+                              real_marker_size[0] + 2 * border_x,
+                              real_marker_size[1] + 2 * border_y])
             # draw the marker on top of the white rect
             game_surface.blit(m_img, (x, y))

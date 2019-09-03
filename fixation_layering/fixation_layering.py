@@ -5,6 +5,7 @@ import numpy as np
 from imutils import resize
 import math
 import pygame
+from config import *
 
 from mock import get_random_gaze_positions
 
@@ -18,14 +19,11 @@ def calculate_gaussian_kernel(sigma=100):
     # kernel = np.exp(-kernel) * 1 / (np.pi*sigma*sigma)
     kernel = np.exp(-kernel)
     return kernel
-    # for x in range(-radius, radius+1):
-    #     for y in range(-radius, radius+1):
-    #         kernel = x*x + y*y
 
 
 def initialise_screen():
     pygame.init()
-    if True:
+    if FULLSCREEN:
         os.environ['SDL_VIDEO_WINDOW_POS'] = "0,0"
         info = pygame.display.Info()
         _screen = pygame.display.set_mode((info.current_w, info.current_h), pygame.NOFRAME)
@@ -47,6 +45,7 @@ if __name__ == '__main__':
     original_image = cv2.imread(os.path.join("./data", "stimuli", "stimulus1.jpg"))
     original_image = resize(original_image, width=width)
     image = np.copy(original_image)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     gaussian_kernel = calculate_gaussian_kernel(sigma)
     alpha = 1 / (np.mean(gaussian_kernel) * n)
     gaussian_kernel *= alpha
@@ -92,7 +91,6 @@ if __name__ == '__main__':
         # cv2.imshow("filtered", image_filtered)
         # key = cv2.waitKey(200)
         pygame_image = np.rot90(image_filtered)
-        pygame_image = cv2.cvtColor(pygame_image, cv2.COLOR_BGR2RGB)
         screen.blit(pygame.surfarray.make_surface(pygame_image), (0, 0))
         pygame.display.update()
         # if key == ord("q"):

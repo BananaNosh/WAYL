@@ -179,3 +179,19 @@ def send_recv_notification(requester, n):
     # REQ REP requires lock step communication with multipart msg (topic,msgpack_encoded dict)
     requester.send_multipart(('notify.{}'.format(n['subject']).encode(), msgpack.dumps(n)))
     return requester.recv()
+
+
+def start_gaze_stream_and_wait(ip, port, surface_name):
+    """
+    Starts a SurfaceGazeStream and waits until it sends data
+    Args:
+        ip(str): the eye tracker ip
+        port(int): the eye tracker port
+    Returns: (SurfaceGazeStream) the created GazeStream
+    """
+    gaze_stream = SurfaceGazeStream(ip, port, get_sub_port(ip, port),
+                                    surface_name=surface_name)
+    gaze_stream.start()
+    while gaze_stream.read() is None:
+        pass
+    return gaze_stream

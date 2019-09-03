@@ -1,1 +1,8 @@
 instead of mapping in 0-255 range we should use max and min cutting
+
+ablauf:
+    show image
+    get_gaze every interval
+    send and receive
+    calculate new image with fixation
+    show new image -> repeat

@@ -5,8 +5,8 @@ STIMULUS_PATH = os.path.join("./data", "stimuli", "stimulus1.jpg")
 
 # ui:
 FULLSCREEN = False
-SCREEN_WIDTH = 1200     # only used if not FULLSCREEN
-SCREEN_HEIGHT = 675    # only used if not FULLSCREEN
+SCREEN_WIDTH = 1400     # only used if not FULLSCREEN
+SCREEN_HEIGHT = 788    # only used if not FULLSCREEN
 IMAGE_WIDTH = 1000
 
 
@@ -27,3 +27,6 @@ EYE_TRACKING_SURFACE_NAME = "WAYL_Screen"
 # general
 SCREEN_UPDATE_INTERVAL = 0.1  # the time after which the screen is updated in seconds
 SEND_INTERVAL = 0.5
+
+# Fixations
+FIXATION_OVERLAY_SIGMA = 240  # in pixel

@@ -5,6 +5,7 @@ import msgpack
 import zmq
 
 from helper import current_time_string
+from messaging.zmq_classes import Subscriber
 
 
 class SurfaceGazeStream:
@@ -77,42 +78,6 @@ class SurfaceGazeStream:
             send_recv_notification(req, {'subject': 'start_plugin', 'name': 'Surface_Tracker',
                                          'args': {'min_marker_perimeter': 50}})
             self.started_plugin = True
-
-
-class Subscriber:
-    def __init__(self, ip, sub_port, subjects):
-        self.ip = ip
-        self.sub_port = sub_port
-        self.subjects = subjects
-        # noinspection PyUnresolvedReferences
-        self.subscriber = zmq.Context().socket(zmq.SUB)
-
-    def start(self):
-        self.subscriber.connect("tcp://{}:{}".format(self.ip, self.sub_port))
-        for s in self.subjects:
-            # noinspection PyUnresolvedReferences
-            self.subscriber.set(zmq.SUBSCRIBE, s.encode())
-        return self
-
-    def recv(self, timeout=None):
-        while True:
-            try:
-                if timeout is not None:
-                    # self.subscriber.RCVTIMEO = timeout
-                    # noinspection PyUnresolvedReferences
-                    if self.subscriber.poll(timeout, zmq.POLLIN):
-                        # noinspection PyUnresolvedReferences
-                        topic, payload = self.subscriber.recv_multipart(zmq.NOBLOCK)
-                    else:
-                        print("timeout error")
-                        return None
-                else:
-                    topic, payload = self.subscriber.recv_multipart()
-                message = msgpack.loads(payload)
-                topic = topic.decode()
-                return topic, message
-            except zmq.error.Again:
-                continue
 
 
 def get_connected_requester(ip, port):

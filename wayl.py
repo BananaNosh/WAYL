@@ -96,5 +96,5 @@ if __name__ == '__main__':
         # activate_total_fullscreen(screen)
         pass
     image = read_image()
-    gaze_stream = None # prepare_gaze_reading()
+    gaze_stream = None  # prepare_gaze_reading()
     main_loop(screen, image, gaze_stream)

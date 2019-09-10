@@ -13,11 +13,13 @@ class Subscriber:
         """
         Creates a Subscriber wrapping a zmq.SUB socket listening to the given subjects
         Args:
-            ip(str)): the ip to subscribe to
-            port(int): the port to subscribe on
+            ip(str|None): the ip to subscribe to (can be None if add_additional_ips is used)
+            port(int|None): the port to subscribe on (can be None if add_additional_ips is used)
             subjects(list(str)): the subject to subscribe on
         """
-        self.ip_and_ports = {(ip, port): 0.0}  # the ip-port-combinations with their last alive time
+        self.ip_and_ports = {}  # the ip-port-combinations with their last alive time
+        if ip is not None and port is not None:
+            self.ip_and_ports[(ip, port)] = 0.0
         self.subjects = subjects
         # noinspection PyUnresolvedReferences
         self.subscriber = zmq.Context().socket(zmq.SUB)
@@ -56,7 +58,8 @@ class Subscriber:
                 alive_ip, alive_port = received[1].split(":")
                 alive_port = int(alive_port)
                 current_time = time.time()
-                self.ip_and_ports[(alive_ip, alive_port)] = current_time  # update last alive time
+                if (alive_ip, alive_port) in self.ip_and_ports:
+                    self.ip_and_ports[(alive_ip, alive_port)] = current_time  # update last alive time
                 if current_time - last_check_time > self.timeout / 1000:  # check all ips for alive
                     last_check_time = current_time
                     remaining_ips = {}
@@ -64,7 +67,12 @@ class Subscriber:
                         if current_time - last_alive_time < timeout:
                             remaining_ips[(ip, port)] = self.ip_and_ports[(ip, port)]
                         else:
-                            self.subscriber.disconnect("tcp://{}:{}".format(ip, port))
+                            try:
+                                self.subscriber.disconnect("tcp://{}:{}".format(ip, port))
+                                time.sleep(0.001)
+                            except zmq.ZMQError as e:
+                                print("error", e)
+                                pass
                     self.ip_and_ports = remaining_ips
             self.ip_and_ports.clear()
             self.subscriber.close()

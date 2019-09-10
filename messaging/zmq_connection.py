@@ -64,7 +64,7 @@ def setup_publisher():
             _publisher = Publisher(p)
             _publisher.start()
             print("Publisher started on port", p)
-            _publisher.send_alive_signal(CONNECTION_TIMEOUT)
+            _publisher.send_alive_signal(CONNECTION_TIMEOUT // 2)
             return _publisher
         except zmq.error.ZMQError as e:
             if e.args[0] == 98:

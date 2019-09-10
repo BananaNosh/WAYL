@@ -55,6 +55,8 @@ class Subscriber:
                 received = self.check_alive_subscriber.recv(self.timeout)
                 if received is None:  # did not get any alive signal -> disconnect from all ips
                     break
+                if received[1] is None:
+                    continue
                 alive_ip, alive_port = received[1].split(":")
                 alive_port = int(alive_port)
                 current_time = time.time()
@@ -113,13 +115,14 @@ class Subscriber:
                     # noinspection PyUnresolvedReferences
                     if self.subscriber.poll(timeout, zmq.POLLIN):
                         # noinspection PyUnresolvedReferences
-                        topic, payload = self.subscriber.recv_multipart(zmq.NOBLOCK)
+                        received = self.subscriber.recv_multipart(zmq.NOBLOCK)
                     else:
                         print("timeout error")
                         return None
                 else:
-                    topic, payload = self.subscriber.recv_multipart()
-                message = msgpack.loads(payload)
+                    received = self.subscriber.recv_multipart()
+                topic = received[0]
+                message = msgpack.loads(received[1]) if len(received) > 1 else None
                 if type(message) is bytes:
                     message = message.decode()
                 topic = topic.decode()

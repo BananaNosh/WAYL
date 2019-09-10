@@ -5,6 +5,7 @@ import zmq
 
 from messaging.zmq_classes import Subscriber, Publisher, get_own_ips
 
+CONNECTION_TIMEOUT = 60000
 NUMBERS_PER_IP_OCTET = 255
 
 PORT_RANGE = range(5010, 5020)
@@ -12,8 +13,7 @@ PORT_RANGE = range(5010, 5020)
 
 def subscribe_test():
     subscriber = setup_subscriber(["test"])
-    subscriber.add_additional_ips([("192.168.178.38", PORT_RANGE.start)])
-    subscriber.set_connection_timeout(5000)
+    subscriber.set_connection_timeout(CONNECTION_TIMEOUT)
     subscriber.start()
     while True:
         time.sleep(1)
@@ -23,14 +23,25 @@ def subscribe_test():
 
 
 def setup_subscriber(topics):
+    """
+    Setups a subscriber on all possible ips in the local network for the given topics
+    Args:
+        topics(list(str)): the topics
+    Returns: (Subscriber) the setup subscriber
+    """
     subscriber = Subscriber("localhost", PORT_RANGE.start, topics)
     ips = get_possible_network_ips()
     ips_and_ports = [(ip, p) for ip in ips for p in PORT_RANGE]
     subscriber.add_additional_ips(ips_and_ports)
+    subscriber.set_connection_timeout(CONNECTION_TIMEOUT)
     return subscriber
 
 
 def get_possible_network_ips():
+    """
+    Get all possible ips in the local network
+    Returns: (list(str)) the ips
+    """
     all_ips = []
     own_ips = get_own_ips()
     for own_ip in own_ips:
@@ -44,11 +55,16 @@ def get_possible_network_ips():
 
 
 def setup_publisher():
+    """
+    Setups a publisher on the first unused port in PORT_RANGE
+    Returns: (Publisher) the setup publisher
+    """
     for p in PORT_RANGE:
         try:
             _publisher = Publisher(p)
             _publisher.start()
             print("Publisher started on port", p)
+            _publisher.send_alive_signal(CONNECTION_TIMEOUT)
             return _publisher
         except zmq.error.ZMQError as e:
             if e.args[0] == 98:
@@ -63,10 +79,10 @@ if __name__ == '__main__':
     t.setDaemon(True)
     t.start()
     publisher = setup_publisher()
-    publisher.send_alive_signal(5000)
     publisher2 = setup_publisher()
-    publisher2.send_alive_signal(5000)
     time.sleep(1)
     publisher.send("test", "Hello World")
     while True:
+        time.sleep(10)
+        publisher.send("test", "Huhu")
         pass

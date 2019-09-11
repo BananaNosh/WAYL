@@ -150,19 +150,22 @@ class Publisher:
         self.publisher.bind("tcp://*:%s" % self.pub_port)
         return self
 
-    def send_alive_signal(self, interval):
+    def send_alive_signal(self, interval, port_range):
         """
-        Start a thread which sends a ALIVE_TOPIC message every interval milliseconds
+        Start a thread which sends a ALIVE_TOPIC message every interval milliseconds with a publisher on a port in range
         with the publishers ips and port
         Args:
             interval(int): the interval in milliseconds
+            port_range(range): the port range to send the alive signal on
         """
         pub_ips = get_own_ips()
 
         def send_alive():
+            alive_publisher = setup_publisher(port_range)
             while True:
                 for ip in pub_ips:
-                    self.send(ALIVE_TOPIC, "{}:{}".format(ip, self.pub_port))
+                    alive_publisher.send(ALIVE_TOPIC, "{}:{}".format(ip, self.pub_port))
+                    alive_publisher.send(ALIVE_TOPIC, "{}:{}".format(ip, alive_publisher.pub_port))
                 time.sleep(interval / 1000)
 
         send_alive_thread = Thread(target=send_alive, name="send_alive", args=())
@@ -179,6 +182,27 @@ class Publisher:
         print("Pub sends {} {}".format(topic, message))
         payload = msgpack.dumps(message)
         self.publisher.send_multipart((topic.encode(), payload))
+
+
+def setup_publisher(port_range):
+    """
+    Setups a publisher on the first unused port in port_range
+    Args:
+        port_range(range): the range of ports to try to bind on
+    Returns: (Publisher) the setup publisher
+    """
+    for p in port_range:
+        try:
+            _publisher = Publisher(p)
+            _publisher.start()
+            print("Publisher started on port", p)
+            return _publisher
+        except zmq.error.ZMQError as e:
+            if e.args[0] == 98:
+                print("Port already used, trying next one!")
+            else:
+                raise e
+    raise zmq.error.ZMQError(-1, "No unused port found in PORT_RANGE")
 
 
 def get_own_ips():

@@ -1,9 +1,7 @@
 import time
 from threading import Thread
 
-import zmq
-
-from messaging.zmq_classes import Subscriber, Publisher, get_own_ips
+from messaging.zmq_classes import Subscriber, get_own_ips, setup_publisher as _setup_publisher
 
 CONNECTION_TIMEOUT = 10000
 NUMBERS_PER_IP_OCTET = 255
@@ -56,22 +54,12 @@ def get_possible_network_ips():
 
 def setup_publisher():
     """
-    Setups a publisher on the first unused port in PORT_RANGE
+    Setups a publisher on the first unused port in PORT_RANGE and starts the alive_signal_sending
     Returns: (Publisher) the setup publisher
     """
-    for p in PORT_RANGE:
-        try:
-            _publisher = Publisher(p)
-            _publisher.start()
-            print("Publisher started on port", p)
-            _publisher.send_alive_signal(CONNECTION_TIMEOUT // 2)
-            return _publisher
-        except zmq.error.ZMQError as e:
-            if e.args[0] == 98:
-                print("Port already used, trying next one!")
-            else:
-                raise e
-    raise zmq.error.ZMQError(-1, "No unused port found in PORT_RANGE")
+    _publisher = _setup_publisher(PORT_RANGE)
+    _publisher.send_alive_signal(CONNECTION_TIMEOUT // 2, PORT_RANGE)
+    return _publisher
 
 
 if __name__ == '__main__':
@@ -83,6 +71,6 @@ if __name__ == '__main__':
     # time.sleep(1)
     # publisher.send("test", "Hello World")
     while True:
-        time.sleep(10)
-        publisher.send("test", "Huhu")
+        time.sleep(5)
+        publisher.send("test", "Huhu1")
         pass

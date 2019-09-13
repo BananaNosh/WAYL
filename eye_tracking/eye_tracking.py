@@ -10,6 +10,16 @@ from messaging.zmq_classes import Subscriber
 
 class SurfaceGazeStream:
     def __init__(self, ip, port, sub_port, surface_name="unnamed", stream_name="GazeStream", verbose=False):
+        """
+        Creates a stream which returns the gaze positions on a certain surface
+        Args:
+            ip(str): the ip of the pupil labs eye tracker (usually "localhost")
+            port(int): the port of the pupil labs eye tracker
+            sub_port(int): the SUB port of the ey
+            surface_name(str): the name of the surface to be monitored
+            stream_name(str): the name of the stream
+            verbose(bool): if there should be printed more information
+        """
         self.name = stream_name
         self.stopped = False
         # self.subscriber = zmq.Context().socket(zmq.SUB)
@@ -24,6 +34,10 @@ class SurfaceGazeStream:
         self.verbose = verbose
 
     def start(self):
+        """
+        Starts the subscriber listening to the surface data on a new Thread
+        Returns: (SurfaceGazeStream) self
+        """
         t = Thread(target=self.update, name=self.name, args=())
         t.daemon = True
         self.start_surface_tracker_plugin()
@@ -33,6 +47,9 @@ class SurfaceGazeStream:
         return self
 
     def update(self):
+        """
+        Updates its last received surface_gaze_datum if not stopped
+        """
         while True:
             if self.stopped:
                 return
@@ -40,9 +57,6 @@ class SurfaceGazeStream:
             if topic.startswith("gaze"):
                 if self.verbose:
                     print("GazeStream-gaze: {}".format(message))
-                # self.gaze_datum = message
-            # elif topic.startswith("frame"):
-            #     self.frame = message
             elif topic.startswith("surfaces"):
                 if self.verbose:
                     print("GazeStream-surfaces: {}".format(message))
@@ -52,9 +66,16 @@ class SurfaceGazeStream:
                     print("GazeStream-{}:  {}".format(topic, message["msg".encode()]))
 
     def read(self):
+        """
+        Returns: (dict) the lates suface gaze datum
+        """
         return self.surface_gaze_datum
 
     def read_position(self):
+        """
+        Reads the latest gaze position from the surface gaze datum
+        Returns: (tuple(float, float)|None) the latest position or None
+        """
         if self.surface_gaze_datum is None:
             return None
         gazes = self.surface_gaze_datum["gaze_on_srf".encode()]
@@ -70,9 +91,15 @@ class SurfaceGazeStream:
         return tuple(norm_pos)
 
     def stop(self):
+        """
+        Stops the stream
+        """
         self.stopped = True
 
     def start_surface_tracker_plugin(self):
+        """
+        Starts the surface tracker plugin used to communicate with the eye tracker
+        """
         if not self.started_plugin:
             req = get_connected_requester(self.ip, self.port)
             send_recv_notification(req, {'subject': 'start_plugin', 'name': 'Surface_Tracker',
@@ -81,6 +108,13 @@ class SurfaceGazeStream:
 
 
 def get_connected_requester(ip, port):
+    """
+    Creates a requester to send commands to pupil labs for the given ip and port
+    Args:
+        ip(str): the ip of the eye tracker
+        port(int): the port of the eye tracker
+    Returns: (zmq.REQ socket) the requester
+    """
     ctx = zmq.Context()
     # noinspection PyUnresolvedReferences
     requester = ctx.socket(zmq.REQ)
@@ -90,7 +124,18 @@ def get_connected_requester(ip, port):
 
 
 def calibrate(ip, port, sub_port, subscriber=None, requester=None, retries=0):
+    """
+    Start the calibration of the eye tracker and retries it up to three times if failing
+    Args:
+        ip(str): the ip of the eye tracker
+        port(int): the port of the eye tracker
+        sub_port(int): the SUB port of the eye tracker
+        subscriber(Subscriber|None): a Subscriber already created for the calibration or None
+        requester(zmq.REQ socket): a requester socket to send commands
+        retries(int): the number of already executed retries
+    """
     def on_failed():
+        """Called if the calibration fails several times"""
         sys.exit(1)
 
     n = {"subject": "calibration.should_start"}
@@ -134,15 +179,28 @@ def calibrate(ip, port, sub_port, subscriber=None, requester=None, retries=0):
 
 
 def get_sub_port(ip, port):
+    """
+    Gets the SUB port according to the eye tracker ip and port
+    Args:
+        ip(str): the eye tracker ip
+        port(int): the eye tracker port
+    Returns: (int) the SUB port
+    """
     requester = get_connected_requester(ip, port)
     requester.send_string('SUB_PORT')
     sub_port = requester.recv_string()
     return sub_port
 
 
-def send_recv_notification(requester, n):
-    # REQ REP requires lock step communication with multipart msg (topic,msgpack_encoded dict)
-    requester.send_multipart(('notify.{}'.format(n['subject']).encode(), msgpack.dumps(n)))
+def send_recv_notification(requester, notification):
+    """
+    Send a notification(a command e.g.) with the requester and wait for a confirmation
+    Args:
+        requester(zmq.REQ socket): the requester to use
+        notification(dict): a dictionary containing the notification
+    Returns: (str): the feedback for the request
+    """
+    requester.send_multipart(('notify.{}'.format(notification['subject']).encode(), msgpack.dumps(notification)))
     return requester.recv()
 
 

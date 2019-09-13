@@ -96,7 +96,7 @@ def get_mapping_back_to_range_values(_gaussian_kernel, number_of_positions):
         number_of_positions(int): the number of positions used in the filter process
     Returns: (float, float) the scale factor and the shift value
     """
-    number_of_persons_looking_at_same_point = 4  # TODO change according to number_of_positions
+    number_of_persons_looking_at_same_point = max(1, number_of_positions)  # TODO change with higher number_of_positions
     overlay_max = np.max(_gaussian_kernel) * number_of_persons_looking_at_same_point
     mapping_back_to_range_factor = 1 / overlay_max
     mapping_back_to_range_shift = 128 * (overlay_max - 1) / overlay_max

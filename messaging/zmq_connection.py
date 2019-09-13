@@ -11,7 +11,6 @@ PORT_RANGE = range(5010, 5020)
 
 def subscribe_test():
     subscriber = setup_subscriber(["test"])
-    subscriber.set_connection_timeout(CONNECTION_TIMEOUT)
     subscriber.start()
     while True:
         message = subscriber.recv()

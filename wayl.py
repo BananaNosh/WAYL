@@ -1,16 +1,15 @@
-import pygame
-import cv2
-import os
-from imutils import resize
 import time
 
-from eye_tracking.eye_tracking import SurfaceGazeStream, get_sub_port, start_gaze_stream_and_wait
-from eye_tracking.pupil_labs.start_pupil_capture import start_pupil_capture
-from fixation_layering import filter_image_with_positions, calculate_gaussian_kernel, get_mapping_back_to_range_values
-from messaging.gaze_exchange import send_gaze, RemoteGazePositionStream
-from view.ui_handler import initialise_screen, show_markers, show_calibration, show_image, activate_total_fullscreen, \
-    draw_point_at_positions
+import cv2
+import pygame
+from imutils import resize
+
 from config import *
+from eye_tracking.eye_tracking import start_gaze_stream_and_wait
+from eye_tracking.pupil_labs.start_pupil_capture import start_pupil_capture
+from fixation_layering import filter_image_with_positions, calculate_gaussian_kernel
+from messaging.gaze_exchange import send_gaze, RemoteGazePositionStream
+from view.ui_handler import initialise_screen, show_markers, show_calibration, show_image, draw_point_at_positions
 
 
 def read_image():
@@ -80,6 +79,7 @@ def main_loop(_screen, _image, _gaze_stream):
         #              for fix in remote_positions_stream.read_list()]
         # draw_point_at_positions(_screen, fixations)
         fixations_on_image = [map_position_to_pixel(pos, image) for pos in remote_positions_stream.read_list()]
+        print("fixation", fixations_on_image)
         filtered_image = filter_image_with_positions(image, fixations_on_image, gaussian_kernel)
 
 

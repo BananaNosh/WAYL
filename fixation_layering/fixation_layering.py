@@ -7,8 +7,6 @@ import math
 import pygame
 from config import *
 
-from mock import get_random_gaze_positions
-
 
 def calculate_gaussian_kernel(_sigma=100):
     _radius = _sigma * 3
@@ -16,7 +14,7 @@ def calculate_gaussian_kernel(_sigma=100):
     kernel_x = np.array([np.arange(_window_size) for _ in range(_window_size)]) - _radius
     kernel_y = kernel_x.T
     kernel = (np.power(kernel_x, 2) + np.power(kernel_y, 2)) / (2 * _sigma * _sigma)
-    # kernel = np.exp(-kernel) * 1 / (np.pi*sigma*sigma)
+    # kernel = np.exp(-kernel) / (np.pi*_sigma*_sigma)
     kernel = np.exp(-kernel)
     return kernel
 
@@ -104,6 +102,7 @@ def get_mapping_back_to_range_values(_gaussian_kernel, number_of_positions):
 
 
 if __name__ == '__main__':
+    from mock import get_random_gaze_positions
     show = True
     width, height = 1200, 675
     if show:
@@ -112,7 +111,7 @@ if __name__ == '__main__':
     n = 4
     deg_per_px = math.degrees(math.atan2(.5 * 18.2, 70)) / (.5 * 675)
     print(deg_per_px)
-    original_image = cv2.imread(os.path.join("./data", "stimuli", "stimulus1.jpg"))
+    original_image = cv2.imread(os.path.join("../data", "stimuli", "stimulus1.jpg"))
     original_image = resize(original_image, width=width)
     original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
     image = np.copy(original_image)

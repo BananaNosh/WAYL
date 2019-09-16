@@ -7,9 +7,14 @@ from imutils import resize
 from config import *
 from eye_tracking.eye_tracking import start_gaze_stream_and_wait
 from eye_tracking.pupil_labs.start_pupil_capture import start_pupil_capture
-from fixation_layering import filter_image_with_positions, calculate_gaussian_kernel
-from messaging.gaze_exchange import send_gaze, RemoteGazePositionStream
+from fixation_layering.fixation_layering import filter_image_with_positions, calculate_gaussian_kernel
+from messaging.gaze_exchange import send_gaze
 from view.ui_handler import initialise_screen, show_markers, show_calibration, show_image, draw_point_at_positions
+
+if MOCK_PLAYERS == 0:
+    from messaging.gaze_exchange import RemoteGazePositionStream
+else:
+    from mock.gaze_exchange_mock import RemoteGazePositionStream
 
 
 def read_image():
@@ -41,7 +46,7 @@ def map_position_between_screen_and_image(position, _screen, _image, from_screen
     return new_x, new_y
 
 
-def map_position_to_pixel(position, _image):
+def map_position_to_np_pixel(position, _image):
     image_height, image_width = _image.shape[:2]
     return int(position[0] * image_width), int(position[1] * image_height)
 
@@ -52,6 +57,7 @@ def main_loop(_screen, _image, _gaze_stream):
     filtered_image = _image.copy()
     gaussian_kernel = calculate_gaussian_kernel(FIXATION_OVERLAY_SIGMA)
 
+    fixations = []  # TODO remove
     remote_positions_stream = RemoteGazePositionStream()
     remote_positions_stream.start()
     last_screen_update_time = 0
@@ -67,20 +73,22 @@ def main_loop(_screen, _image, _gaze_stream):
             continue
         last_screen_update_time = current_time
         show_image(_screen, filtered_image)
+        draw_point_at_positions(_screen, fixations)  # TODO remove
         show_markers(_screen)
+        fixations = [map_position_between_screen_and_image(fix, _screen, _image, False)
+                     for fix in remote_positions_stream.read_list()] # TODO remove
+        fixations_on_image = [map_position_to_np_pixel(pos, image) for pos in remote_positions_stream.read_list()]
+        print("fixation", fixations_on_image)
+        filtered_image = filter_image_with_positions(image, fixations_on_image, gaussian_kernel)
 
         if current_time - last_send_time < SEND_INTERVAL:
             continue
         last_send_time = current_time
-        # position = _gaze_stream.read_position()
-        # send_gaze(map_position_between_screen_and_image(position, _screen, _image, True))
-
-        # fixations = [map_position_between_screen_and_image(fix, _screen, _image, False)
-        #              for fix in remote_positions_stream.read_list()]
-        # draw_point_at_positions(_screen, fixations)
-        fixations_on_image = [map_position_to_pixel(pos, image) for pos in remote_positions_stream.read_list()]
-        print("fixation", fixations_on_image)
-        filtered_image = filter_image_with_positions(image, fixations_on_image, gaussian_kernel)
+        position = None#_gaze_stream.read_position()
+        print(position)
+        if position is not None:
+            position = position[0], 1 - position[1]
+            send_gaze(map_position_between_screen_and_image(position, _screen, _image, True))
 
 
 def prepare_gaze_reading():

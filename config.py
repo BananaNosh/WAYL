@@ -30,3 +30,8 @@ SEND_INTERVAL = 0.5
 
 # Fixations
 FIXATION_OVERLAY_SIGMA = 240  # in pixel
+
+# testing
+MOCK_PLAYERS = 1  # number of fake player for which a fake position is shown only in this client
+MOCK_POSITIONS = [(0.85, 0.22)]  # the fake positions shown e.g. [(0.5, 0.5), (0.2, 0,3)],
+# if len(MOCK_POSITIONS) is smaller than MOCK_PLAYERS, the other positions are dynamically randomly changed

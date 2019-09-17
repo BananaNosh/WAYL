@@ -11,7 +11,7 @@ import logging
 import json
 from threading import Thread
 
-from messaging.zmq_classes import get_own_ips
+from messaging.zmq_classes import get_own_ips, Subscriber
 from messaging.zmq_connection import setup_publisher, setup_subscriber
 
 STOP_MESSAGE = "$$STOP"
@@ -88,7 +88,7 @@ class RemoteGazePositionStream:
         self.subscriber = None
 
     def start(self):
-        self.subscriber = setup_subscriber([TOPIC_GAZE_EXCHANGE])
+        self.subscriber = Subscriber("localhost", 5010, [TOPIC_GAZE_EXCHANGE])#setup_subscriber([TOPIC_GAZE_EXCHANGE])
         self.subscriber.start()
         t = Thread(target=self.update, name=self.name, args=())
         t.daemon = True

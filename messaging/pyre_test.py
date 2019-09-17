@@ -13,8 +13,6 @@ import json
 
 def chat_task(ctx, pipe):
     n = Pyre("CHAT")
-    n.set_header("CHAT_Header1","example header1")
-    n.set_header("CHAT_Header2","example header2")
     n.join("CHAT")
     n.start()
 
@@ -34,8 +32,10 @@ def chat_task(ctx, pipe):
             print("CHAT_TASK: %s" % message)
             n.shouts("CHAT", message.decode('utf-8'))
         else:
+            print(n.peers())
         #if n.socket() in items and items[n.socket()] == zmq.POLLIN:
             cmds = n.recv()
+            print(cmds)
             msg_type = cmds.pop(0)
             print("NODE_MSG TYPE: %s" % msg_type)
             print("NODE_MSG PEER: %s" % uuid.UUID(bytes=cmds.pop(0)))

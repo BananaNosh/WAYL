@@ -198,7 +198,7 @@ def setup_publisher(port_range):
             print("Publisher started on port", p)
             return _publisher
         except zmq.error.ZMQError as e:
-            if e.args[0] == 98:
+            if len(e.args) > 0 and e.args[0] == 98:
                 print("Port already used, trying next one!")
             else:
                 raise e

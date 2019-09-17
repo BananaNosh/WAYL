@@ -10,12 +10,14 @@ import uuid
 import logging
 import json
 from threading import Thread
+import time
 
 from messaging.zmq_classes import get_own_ips, Subscriber
 from messaging.zmq_connection import setup_publisher, setup_subscriber
 
 STOP_MESSAGE = "$$STOP"
 TOPIC_GAZE_EXCHANGE = "gaze_exchange"
+GROUP_GAZE_EXCHANGE = "GAZE_EXCHANGE"
 
 publisher = None
 publisher_id = None
@@ -25,7 +27,7 @@ gaze_exchange_pipe = None
 def gaze_exchange_task(ctx, pipe):
     n = Pyre("GAZE_EXCHANGE")
     publisher_id = n.uuid()
-    n.join("GAZE_EXCHANGE")
+    n.join(GROUP_GAZE_EXCHANGE)
     n.start()
 
     poller = zmq.Poller()
@@ -43,7 +45,7 @@ def gaze_exchange_task(ctx, pipe):
             if message.decode('utf-8') == STOP_MESSAGE:
                 break
             print("GAZE_EXCHANGE_TASK: {}".format(message))
-            n.shouts(TOPIC_GAZE_EXCHANGE, message.decode('utf-8'))
+            n.shouts(GROUP_GAZE_EXCHANGE, message.decode('utf-8'))
         else:
             cmds = n.recv()
             msg_type = cmds.pop(0)
@@ -65,13 +67,16 @@ def setup_pyre_messaging():
     global gaze_exchange_pipe
     ctx = zmq.Context()
     gaze_exchange_pipe = zhelper.zthread_fork(ctx, gaze_exchange_task)
+    # time.sleep(5)
 
 
 def send_gaze(gaze):
     global publisher, publisher_id, gaze_exchange_pipe
     gaze_string = ",".join([str(pos) for pos in gaze])
     if gaze_exchange_pipe is not None:
-        gaze_exchange_pipe.send("{}:{}".format(publisher_id, gaze_string).encode("utf-8"))
+        msg = "{}:{}".format(publisher_id, gaze_string)
+        print("try to send ", msg)
+        gaze_exchange_pipe.send(msg.encode("utf-8"))
     else:
         if publisher is None:
             publisher = setup_publisher()

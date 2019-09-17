@@ -4,7 +4,7 @@ import pygame
 
 
 class SurfaceMarkerCreator(object):
-    def __init__(self, markers=None, marker_path="eye_tracking/markers", marker_prefix="marker_"):
+    def __init__(self, markers=None, marker_path="./eye_tracking/markers", marker_prefix="marker_"):
         """
         A class for drawing the given markers on the edges of a surface
         Args:

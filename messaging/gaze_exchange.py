@@ -25,6 +25,7 @@ gaze_exchange_pipe = None
 
 
 def gaze_exchange_task(ctx, pipe):
+    global publisher_id
     n = Pyre("GAZE_EXCHANGE")
     publisher_id = n.uuid()
     n.join(GROUP_GAZE_EXCHANGE)
@@ -118,10 +119,13 @@ class RemoteGazePositionStream:
             #     "pl5": (0.9, 0)
             # }  # TODO update positions via ZMQ or similar
 
-    def read(self):
+    def read(self, use_pygame_coordinates=True):
         if self.stopped:
             raise ValueError("Stream is not running")
-        return self.received_gaze_positions
+        if use_pygame_coordinates:
+            return dict(((name, (pos[0], 1-pos[1])) for name, pos in self.received_gaze_positions.items()))
+        else:
+            return self.received_gaze_positions
 
-    def read_list(self):
-        return [pos for pos in self.read().values()]
+    def read_list(self, use_pygame_coordinates=True):
+        return [pos for pos in self.read(use_pygame_coordinates).values()]

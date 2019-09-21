@@ -48,7 +48,7 @@ def map_position_between_screen_and_image(position, _screen, _image, from_screen
 
 def map_position_to_np_pixel(position, _image):
     image_height, image_width = _image.shape[:2]
-    return int(position[0] * image_width), int(position[1] * image_height)
+    return int(position[1] * image_height), 1 - int(position[0] * image_width)
 
 
 def main_loop(_screen, _image, _gaze_stream):
@@ -60,7 +60,8 @@ def main_loop(_screen, _image, _gaze_stream):
     fixations = []  # TODO remove
     remote_positions_stream = RemoteGazePositionStream()
     remote_positions_stream.start()
-    setup_pyre_messaging()
+    if USE_PYRE_NETWORKING:
+        setup_pyre_messaging()
     last_screen_update_time = 0
     last_send_time = 0
     while True:
@@ -74,36 +75,43 @@ def main_loop(_screen, _image, _gaze_stream):
             continue
         last_screen_update_time = current_time
         show_image(_screen, filtered_image)
-        draw_point_at_positions(_screen, fixations)  # TODO remove
+        # draw_point_at_positions(_screen, fixations)  # TODO remove
         show_markers(_screen)
         fixations = [map_position_between_screen_and_image(fix, _screen, _image, False)
-                     for fix in remote_positions_stream.read_list()] # TODO remove
+                     for fix in remote_positions_stream.read_list()]  # TODO remove
         fixations_on_image = [map_position_to_np_pixel(pos, image) for pos in remote_positions_stream.read_list()]
         # print("fixation", fixations_on_image)
-        filtered_image = filter_image_with_positions(image, fixations_on_image, gaussian_kernel)
+        filtered_image = image.copy() #filter_image_with_positions(image, fixations_on_image, gaussian_kernel)
+        import numpy as np
+        for f in fixations_on_image:
+            filtered_image[f[0]-5:f[0]+5, f[1]-5:f[1]+5] = np.array([237, 52, 249])
+        draw_point_at_positions(_screen, fixations)  # TODO remove
 
         if current_time - last_send_time < SEND_INTERVAL:
             continue
         last_send_time = current_time
-        position = (0.5, 0.5)#_gaze_stream.read_position()
-        # print(position)
+        position = gaze_stream.read_position() if gaze_stream is not None else None
+        print(position)
         if position is not None:
-            position = position[0], 1 - position[1]
             send_gaze(map_position_between_screen_and_image(position, _screen, _image, True))
 
 
 def prepare_gaze_reading():
+    if TURN_OFF_EYE_TRACKING:
+        return None
     show_markers(screen)
     return start_gaze_stream_and_wait(EYE_TRACKING_IP, EYE_TRACKING_PORT, EYE_TRACKING_SURFACE_NAME)
 
 
 if __name__ == '__main__':
-    # start_pupil_capture()
+    if not TURN_OFF_EYE_TRACKING:
+        start_pupil_capture()
     screen = initialise_screen()
-    # show_calibration()
+    if not TURN_OFF_EYE_TRACKING:
+        show_calibration()
     if FULLSCREEN:  # necessary here as calibration does not work with fullscreen
         # activate_total_fullscreen(screen)
         pass
     image = read_image()
-    gaze_stream = None  # prepare_gaze_reading()
+    gaze_stream = prepare_gaze_reading()
     main_loop(screen, image, gaze_stream)

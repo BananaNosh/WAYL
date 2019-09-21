@@ -2,7 +2,8 @@ netifaces
 numpy
 pyzmq
 msgpack
-psutil
 opencv-python
-imutils
 pygame
+imutils
+psutil
+# pyre (https://github.com/zeromq/pyre/archive/master.zip)

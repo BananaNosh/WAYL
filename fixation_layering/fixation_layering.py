@@ -57,7 +57,7 @@ def gaze_filter_for_positions(_positions, image_size, _gaussian_kernel):
         bottom_cut = max(bottom - (image_height - 1), 0)  # number of pixels overhanging on the bottom of the image
         _gaze_filter[top + top_cut:bottom + 1 - bottom_cut, left + left_cut:right + 1 - right_cut] \
             += _gaussian_kernel[top_cut:kernel_window_size - bottom_cut, left_cut:kernel_window_size - right_cut]
-        # _gaze_filter[left+left_cut:right+1-right_cut, top+top_cut:bottom+1-bottom_cut] = 2
+        # _gaze_filter[top + top_cut:bottom + 1 - bottom_cut, left + left_cut:right + 1 - right_cut] = 2
     return _gaze_filter
 
 
@@ -101,57 +101,63 @@ def get_mapping_back_to_range_values(_gaussian_kernel, number_of_positions):
     return mapping_back_to_range_factor, mapping_back_to_range_shift
 
 
-if __name__ == '__main__':
-    from mock import get_random_gaze_positions
-    show = True
-    width, height = 1200, 675
-    if show:
-        screen = initialise_screen()
-    sigma = 240
-    n = 4
-    deg_per_px = math.degrees(math.atan2(.5 * 18.2, 70)) / (.5 * 675)
-    print(deg_per_px)
-    original_image = cv2.imread(os.path.join("../data", "stimuli", "stimulus1.jpg"))
-    original_image = resize(original_image, width=width)
-    original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
-    image = np.copy(original_image)
-    gaussian_kernel = calculate_gaussian_kernel(sigma)
-    alpha = 1 / (np.mean(gaussian_kernel) * n)
-    gaussian_kernel *= alpha
-    mapping_back_to_range_values = get_mapping_back_to_range_values(gaussian_kernel, n)
-    print(mapping_back_to_range_values)
-    # gaussian_kernel = np.full_like(gaussian_kernel, np.max(gaussian_kernel))
-    window_size = gaussian_kernel.shape[0]
-    radius = window_size // 2
-    for i in range(100):
-        # positions = [(5, 5) for j in range(number_of_persons_looking_at_same_point)] + [(width, height), (width, height), (width, height)]#[(0, 0), (width//2, height//2), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (width, height)]
-        positions = get_random_gaze_positions(n, range(width), range(height))
-        # print(positions)
-        image_filtered = filter_image_with_positions(image, positions, gaussian_kernel, mapping_back_to_range_values)
+# if __name__ == '__main__':
+#     show = True
+#     width, height = 1200, 675
+#     if show:
+#         screen = initialise_screen()
+#     sigma = 240
+#     n = 4
+#     deg_per_px = math.degrees(math.atan2(.5 * 18.2, 70)) / (.5 * 675)
+#     print(deg_per_px)
+#     original_image = cv2.imread(os.path.join("../data", "stimuli", "stimulus1.jpg"))
+#     original_image = resize(original_image, width=width)
+#     original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
+#     image = np.copy(original_image)
+#     gaussian_kernel = calculate_gaussian_kernel(sigma)
+#     alpha = 1 / (np.mean(gaussian_kernel) * n)
+#     gaussian_kernel *= alpha
+#     mapping_back_to_range_values = get_mapping_back_to_range_values(gaussian_kernel, n)
+#     print(mapping_back_to_range_values)
+#     # gaussian_kernel = np.full_like(gaussian_kernel, np.max(gaussian_kernel))
+#     window_size = gaussian_kernel.shape[0]
+#     radius = window_size // 2
+#     for i in range(100):
+#         # positions = [(5, 5) for j in range(number_of_persons_looking_at_same_point)] + [(width, height), (width, height), (width, height)]#[(0, 0), (width//2, height//2), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (width, height)]
+#         positions = get_random_gaze_positions(n, range(width), range(height))
+#         # print(positions)
+#         image_filtered = filter_image_with_positions(image, positions, gaussian_kernel, mapping_back_to_range_values)
+#
+#         # image_filtered_float -= np.min(image_filtered_float, axis=(0, 1))
+#         # image_filtered = (image_filtered_float / np.max(image_filtered_float, axis=(0, 1)) * 255).astype(np.uint8)
+#         # image = image_filtered
+#         # image_filtered = ((image_filtered_float + 127.5) / 2).astype(np.uint8)
+#         # image_filtered = image_filtered / np.max(image_filtered, axis=(0, 1))
+#
+#         # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+#         # changed_positions = partial_convolve(gray, np.ones((5, 5)), np.array(positions))
+#         # image[positions] = changed_positions
+#         # image_with_circles = np.copy(original_image)
+#         # for pos in positions:
+#         #     cv2.circle(image_with_circles, pos, 5, (255, 255, 255), thickness=-1)
+#         # cv2.imshow("im1", image)
+#         # cv2.imshow("filtered", image_filtered)
+#         # key = cv2.waitKey(200)
+#
+#         if show:
+#             pygame_image = np.rot90(image_filtered)
+#             # noinspection PyUnboundLocalVariable
+#             screen.blit(pygame.surfarray.make_surface(pygame_image), (0, 0))
+#             pygame.display.update()
+#
+#         # if key == ord("q"):
+#         #     break
+#
+#     # cv2.destroyAllWindows()
 
-        # image_filtered_float -= np.min(image_filtered_float, axis=(0, 1))
-        # image_filtered = (image_filtered_float / np.max(image_filtered_float, axis=(0, 1)) * 255).astype(np.uint8)
-        # image = image_filtered
-        # image_filtered = ((image_filtered_float + 127.5) / 2).astype(np.uint8)
-        # image_filtered = image_filtered / np.max(image_filtered, axis=(0, 1))
 
-        # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        # changed_positions = partial_convolve(gray, np.ones((5, 5)), np.array(positions))
-        # image[positions] = changed_positions
-        # image_with_circles = np.copy(original_image)
-        # for pos in positions:
-        #     cv2.circle(image_with_circles, pos, 5, (255, 255, 255), thickness=-1)
-        # cv2.imshow("im1", image)
-        # cv2.imshow("filtered", image_filtered)
-        # key = cv2.waitKey(200)
-
-        if show:
-            pygame_image = np.rot90(image_filtered)
-            # noinspection PyUnboundLocalVariable
-            screen.blit(pygame.surfarray.make_surface(pygame_image), (0, 0))
-            pygame.display.update()
-
-        # if key == ord("q"):
-        #     break
-
-    # cv2.destroyAllWindows()
+def map_position_to_np_pixel(position, _image):
+    if np.min(position) < 0 or np.max(position) > 1:
+        return None  # position is not within image
+    image_width, image_height = _image.shape[:2]
+    return int(position[1] * image_height), int(position[0] * image_width)

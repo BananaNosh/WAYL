@@ -1,20 +1,18 @@
 import time
 
 import cv2
+import numpy as np
 import pygame
 from imutils import resize
 
 from config import *
 from eye_tracking.eye_tracking import start_gaze_stream_and_wait
 from eye_tracking.pupil_labs.start_pupil_capture import start_pupil_capture
-from fixation_layering.fixation_layering import filter_image_with_positions, calculate_gaussian_kernel
-from messaging.gaze_exchange import send_gaze, setup_pyre_messaging
-from view.ui_handler import initialise_screen, show_markers, show_calibration, show_image, draw_point_at_positions
-
-if MOCK_PLAYERS == 0:
-    from messaging.gaze_exchange import RemoteGazePositionStream
-else:
-    from mock.gaze_exchange_mock import RemoteGazePositionStream
+from fixation_layering.fixation_layering import filter_image_with_positions, calculate_gaussian_kernel, \
+    map_position_to_np_pixel
+from messaging.gaze_exchange import send_gaze, setup_gaze_exchange
+from view.ui_handler import initialise_screen, show_markers, show_calibration, show_image, draw_point_at_positions, \
+    map_position_between_screen_and_image
 
 
 def read_image():
@@ -25,30 +23,8 @@ def read_image():
     _image = cv2.imread(STIMULUS_PATH)
     _image = resize(_image, width=IMAGE_WIDTH)
     _image = cv2.cvtColor(_image, cv2.COLOR_BGR2RGB)
+    _image = np.rot90(_image)
     return _image
-
-
-def map_position_between_screen_and_image(position, _screen, _image, from_screen_to_image):
-    width, height = _screen.get_size()
-    image_height, image_width = _image.shape[:2]
-    x_border = (width - image_width) // 2
-    y_border = (height - image_height) // 2
-    relative_x_border = x_border / width
-    relative_y_border = y_border / height
-    relative_image_width = image_width / width
-    relative_image_height = image_height / height
-    if from_screen_to_image:
-        new_x = (position[0] - relative_x_border) / relative_image_width
-        new_y = (position[1] - relative_y_border) / relative_image_height
-    else:  # from_image_to_screen
-        new_x = position[0] * relative_image_width + relative_x_border
-        new_y = position[1] * relative_image_height + relative_y_border
-    return new_x, new_y
-
-
-def map_position_to_np_pixel(position, _image):
-    image_height, image_width = _image.shape[:2]
-    return int(position[1] * image_height), 1 - int(position[0] * image_width)
 
 
 def main_loop(_screen, _image, _gaze_stream):
@@ -57,11 +33,8 @@ def main_loop(_screen, _image, _gaze_stream):
     filtered_image = _image.copy()
     gaussian_kernel = calculate_gaussian_kernel(FIXATION_OVERLAY_SIGMA)
 
-    fixations = []  # TODO remove
-    remote_positions_stream = RemoteGazePositionStream()
-    remote_positions_stream.start()
-    if USE_PYRE_NETWORKING:
-        setup_pyre_messaging()
+    fixations_on_screen = []  # TODO remove
+    remote_positions_stream = setup_gaze_exchange().start()
     last_screen_update_time = 0
     last_send_time = 0
     while True:
@@ -75,25 +48,27 @@ def main_loop(_screen, _image, _gaze_stream):
             continue
         last_screen_update_time = current_time
         show_image(_screen, filtered_image)
-        # draw_point_at_positions(_screen, fixations)  # TODO remove
-        show_markers(_screen)
-        fixations = [map_position_between_screen_and_image(fix, _screen, _image, False)
-                     for fix in remote_positions_stream.read_list()]  # TODO remove
-        fixations_on_image = [map_position_to_np_pixel(pos, image) for pos in remote_positions_stream.read_list()]
+        draw_point_at_positions(_screen, fixations_on_screen)  # TODO remove
+        fixations_on_screen = remote_positions_stream.read_list()  # TODO remove
+        fixations_on_image = [
+            map_position_to_np_pixel(
+                map_position_between_screen_and_image(pos, _screen.get_size(), image.shape[:2], True),
+                image
+            ) for pos in fixations_on_screen
+        ]
+        fixations_on_image = [fix for fix in fixations_on_image if fix is not None]
         # print("fixation", fixations_on_image)
-        filtered_image = image.copy() #filter_image_with_positions(image, fixations_on_image, gaussian_kernel)
-        import numpy as np
-        for f in fixations_on_image:
-            filtered_image[f[0]-5:f[0]+5, f[1]-5:f[1]+5] = np.array([237, 52, 249])
-        draw_point_at_positions(_screen, fixations)  # TODO remove
+        filtered_image = filter_image_with_positions(image, fixations_on_image, gaussian_kernel)
 
         if current_time - last_send_time < SEND_INTERVAL:
             continue
         last_send_time = current_time
+        # read position in pygame coordinates
         position = gaze_stream.read_position() if gaze_stream is not None else None
+        position = (0.5, 0.7)
         print(position)
         if position is not None:
-            send_gaze(map_position_between_screen_and_image(position, _screen, _image, True))
+            send_gaze(position)
 
 
 def prepare_gaze_reading():

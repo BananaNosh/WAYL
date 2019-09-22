@@ -71,9 +71,11 @@ class SurfaceGazeStream:
         """
         return self.surface_gaze_datum
 
-    def read_position(self):
+    def read_position(self, use_pygame_coordinates=True):
         """
         Reads the latest gaze position from the surface gaze datum
+        Args:
+            use_pygame_coordinates(bool): if the coordinates should be mapped to pygame coordinate system
         Returns: (tuple(float, float)|None) the latest position or None
         """
         if self.surface_gaze_datum is None:
@@ -88,7 +90,7 @@ class SurfaceGazeStream:
         if confidence < 0.5:
             print("confidence", confidence)
             return None
-        return tuple(norm_pos)
+        return tuple(norm_pos) if not use_pygame_coordinates else norm_pos[0], 1 - norm_pos[1]
 
     def stop(self):
         """

@@ -18,15 +18,16 @@ def subscribe_test():
         print(len(subscriber.ip_and_ports))
 
 
-def setup_subscriber(topics):
+def setup_subscriber(topics, ips=None):
     """
     Setups a subscriber on all possible ips in the local network for the given topics
     Args:
         topics(list(str)): the topics
+        ips(list(str)|None): list of ips to connect to (if None connected to all possible ips)
     Returns: (Subscriber) the setup subscriber
     """
     subscriber = Subscriber(None, None, topics)
-    ips = get_possible_network_ips()
+    ips = get_possible_network_ips() if ips is None else ips
     ips_and_ports = [(ip, p) for ip in ips for p in PORT_RANGE]
     subscriber.add_additional_ips(ips_and_ports)
     subscriber.set_connection_timeout(CONNECTION_TIMEOUT)

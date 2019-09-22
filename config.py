@@ -18,11 +18,6 @@ USE_PYRE_NETWORKING = True
 # the ip addresses of all connecting computers in local network (only used if not USE_PYRE_NETWORKING)
 NETWORK_IPS = ["localhost"]
 
-# ALLOWED_IPS = ""  # "" == allow all ips
-# MASTER_PORT = 5005
-# MASTER_HOST_NAME = "NoshsUbuntu"  # TODO change
-# THIS_COMPUTER_NAME = "CLIENT1"
-
 # eyetracking
 EYE_TRACKING_IP = "localhost"  # usually connected to PC via usb
 EYE_TRACKING_PORT = 50020

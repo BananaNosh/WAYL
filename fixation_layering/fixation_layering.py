@@ -1,10 +1,6 @@
-import os
-
-import cv2
 import numpy as np
-from imutils import resize
-import math
 import pygame
+
 from config import *
 
 
@@ -94,7 +90,12 @@ def get_mapping_back_to_range_values(_gaussian_kernel, number_of_positions):
         number_of_positions(int): the number of positions used in the filter process
     Returns: (float, float) the scale factor and the shift value
     """
-    number_of_persons_looking_at_same_point = max(1, number_of_positions)  # TODO change with higher number_of_positions
+    if number_of_positions <= 5:
+        number_of_persons_looking_at_same_point = max(1, number_of_positions)
+    elif number_of_positions <= 10:
+        number_of_persons_looking_at_same_point = 5 + (number_of_positions - 5) // 2
+    else:
+        number_of_persons_looking_at_same_point = 8 + (number_of_positions - 10) // 3
     overlay_max = np.max(_gaussian_kernel) * number_of_persons_looking_at_same_point
     mapping_back_to_range_factor = 1 / overlay_max
     mapping_back_to_range_shift = 128 * (overlay_max - 1) / overlay_max

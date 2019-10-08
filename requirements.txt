@@ -6,4 +6,4 @@ opencv-python
 pygame
 imutils
 psutil
-pyre # (https://github.com/zeromq/pyre/archive/master.zip)
+# pyre (https://github.com/zeromq/pyre/archive/master.zip)

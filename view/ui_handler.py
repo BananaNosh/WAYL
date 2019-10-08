@@ -6,6 +6,10 @@ from eye_tracking.surface_markers import SurfaceMarkerCreator
 
 
 def initialise_screen():
+    """
+    Initialise the pygame screen and sets it to the correct size
+    Returns: (Screen) the initialised screen
+    """
     pygame.init()
     if FULLSCREEN:
         os.environ['SDL_VIDEO_WINDOW_POS'] = "0,0"
@@ -21,11 +25,19 @@ def initialise_screen():
 
 
 def show_markers(screen):
+    """
+    Draws the markers on the screen
+    Args:
+        screen(Screen): the pygame screen
+    """
     SurfaceMarkerCreator(EYE_TRACKING_MARKERS).draw(screen)
     pygame.display.update()
 
 
 def show_calibration():
+    """
+    Starts the pupil capture calibration
+    """
     sub_port = get_sub_port(EYE_TRACKING_IP, EYE_TRACKING_PORT)
     calibrate(EYE_TRACKING_IP, EYE_TRACKING_PORT, sub_port)
 
@@ -57,6 +69,12 @@ def show_image(screen, image):
 
 
 def draw_point_at_positions(screen, positions):
+    """
+    Draws a red dot at the positions
+    Args:
+        screen(Screen): the pygame screen
+        positions(list((float, float))): the positions
+    """
     for position in positions:
         position = int(position[0] * screen.get_width()), int(position[1] * screen.get_height())
         circle = pygame.draw.circle(screen, (255, 0, 0), position, 4)
@@ -64,6 +82,15 @@ def draw_point_at_positions(screen, positions):
 
 
 def map_position_between_screen_and_image(position, screen_size, image_size, from_screen_to_image):
+    """
+    Maps the positions from screen frame to image frame and vice versa
+    Args:
+        position((float, float)|ndarray): the position in the origin frame0
+        screen_size((int, int)): the screen size in pixels
+        image_size((int, int)): the image size in pixels
+        from_screen_to_image(bool): true if the mapping should be from screen to image
+    Returns: (float, float) the position in the destination frame
+    """
     screen_width, screen_height = screen_size
     image_width, image_height = image_size
     x_border = (screen_width - image_width) // 2

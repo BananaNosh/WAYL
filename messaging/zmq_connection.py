@@ -20,7 +20,7 @@ def subscribe_test():
 
 def setup_subscriber(topics, ips=None):
     """
-    Setups a subscriber on all possible ips in the local network for the given topics
+    Setups a subscriber on the given ips in the local network for the given topics
     Args:
         topics(list(str)): the topics
         ips(list(str)|None): list of ips to connect to (if None connected to all possible ips)
@@ -60,17 +60,3 @@ def setup_publisher():
     _publisher = _setup_publisher(PORT_RANGE)
     _publisher.send_alive_signal(CONNECTION_TIMEOUT // 2, PORT_RANGE)
     return _publisher
-
-
-if __name__ == '__main__':
-    t = Thread(target=subscribe_test, name="subscribe_test", args=())
-    t.setDaemon(True)
-    t.start()
-    publisher = setup_publisher()
-    # publisher2 = setup_publisher()
-    # time.sleep(1)
-    # publisher.send("test", "Hello World")
-    while True:
-        time.sleep(5)
-        publisher.send("test", "Huhu1")
-        pass

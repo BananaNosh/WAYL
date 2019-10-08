@@ -144,7 +144,7 @@ class Publisher:
 
     def start(self):
         """
-        Binds the publisjer to the given port
+        Binds the publisher to the given port
         Returns: (Subscriber) self
         """
         self.publisher.bind("tcp://*:%s" % self.pub_port)

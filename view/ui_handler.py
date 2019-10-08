@@ -44,7 +44,7 @@ def show_calibration():
 
 def activate_total_fullscreen(_screen):
     """
-    Change the screen to fullscreeen mode
+    Change the screen to fullscreen mode
     Args:
         _screen(Screen): the pygame screen
     """

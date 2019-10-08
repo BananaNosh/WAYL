@@ -4,7 +4,8 @@ from numpy import clip
 from numpy.random import rand
 
 from config import *
-from messaging.remote_gaze_position_stream import AbstractRemoteGazePositionStream, PyreRemoteGazePositionStream, SubscriberRemoteGazePositionStream
+from messaging.remote_gaze_position_stream import AbstractRemoteGazePositionStream, PyreRemoteGazePositionStream, \
+    SubscriberRemoteGazePositionStream
 from view.ui_handler import map_position_between_screen_and_image
 
 

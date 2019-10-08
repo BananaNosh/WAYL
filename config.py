@@ -29,10 +29,10 @@ SCREEN_UPDATE_INTERVAL = 1  # the time after which the screen is updated in seco
 SEND_INTERVAL = 0.5
 
 # Fixations
-FIXATION_OVERLAY_SIGMA = 10#240  # in pixel
+FIXATION_OVERLAY_SIGMA = 120  #240  # in pixel
 
 # testing
-TURN_OFF_EYE_TRACKING = True
-MOCK_PLAYERS = 3  # number of fake player for which a fake position is shown only in this client
+TURN_OFF_EYE_TRACKING = False
+MOCK_PLAYERS = 2  # number of fake player for which a fake position is shown only in this client
 MOCK_POSITIONS = []  # the fake positions shown e.g.[(0.5, 0.5), (0.2, 0,3)] (in relative image coordinates)
 # if len(MOCK_POSITIONS) is smaller than MOCK_PLAYERS, the other positions are dynamically randomly changed

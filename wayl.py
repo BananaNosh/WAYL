@@ -11,7 +11,7 @@ from eye_tracking.pupil_labs.start_pupil_capture import start_pupil_capture
 from fixation_layering.fixation_layering import filter_image_with_positions, calculate_gaussian_kernel, \
     map_position_to_np_pixel
 from messaging.gaze_exchange import send_gaze, setup_gaze_exchange
-from view.ui_handler import initialise_screen, show_markers, show_calibration, show_image, draw_point_at_positions, \
+from view.ui_handler import initialise_screen, show_markers, show_calibration, show_image, \
     map_position_between_screen_and_image, activate_total_fullscreen
 
 
@@ -33,7 +33,6 @@ def main_loop(_screen, _image, _gaze_stream):
     filtered_image = _image.copy()
     gaussian_kernel = calculate_gaussian_kernel(FIXATION_OVERLAY_SIGMA)
 
-    fixations_on_screen = []  # TODO remove
     remote_positions_stream = setup_gaze_exchange().start()
     last_screen_update_time = 0
     last_send_time = 0
@@ -51,17 +50,16 @@ def main_loop(_screen, _image, _gaze_stream):
             continue
         last_screen_update_time = current_time
         show_image(_screen, filtered_image)
-        draw_point_at_positions(_screen, fixations_on_screen)  # TODO remove
-        fixations_on_screen = remote_positions_stream.read_list()  # TODO remove
+        fixations_on_screen = remote_positions_stream.read_list()
         fixations_on_image = [
             map_position_to_np_pixel(
                 map_position_between_screen_and_image(pos, _screen.get_size(), image.shape[:2], True),
                 image
             ) for pos in fixations_on_screen
         ]
-        fixations_on_image = [fix for fix in fixations_on_image if fix is not None]
+        fixations_on_image_not_none = [fix for fix in fixations_on_image if fix is not None]
         # print("fixation", fixations_on_image)
-        filtered_image = filter_image_with_positions(image, fixations_on_image, gaussian_kernel)
+        filtered_image = filter_image_with_positions(image, fixations_on_image_not_none, gaussian_kernel)
 
         if current_time - last_send_time < SEND_INTERVAL:
             continue

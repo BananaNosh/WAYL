@@ -10,8 +10,6 @@ SCREEN_HEIGHT = 788  # only used if not FULLSCREEN
 IMAGE_WIDTH = 1000
 IMAGE_HEIGHT = 563
 
-# texts
-
 # network:
 # use the Pyre framework for connecting to local network (turn off if you get "group GAZE_EXCHANGE not found" error)
 USE_PYRE_NETWORKING = True
@@ -26,13 +24,13 @@ EYE_TRACKING_SURFACE_NAME = "WAYL_Screen"
 
 # general
 SCREEN_UPDATE_INTERVAL = 1  # the time after which the screen is updated in seconds
-SEND_INTERVAL = 0.5
+SEND_INTERVAL = 0.5  # the time after which the current position is send to the other players
 
 # Fixations
-FIXATION_OVERLAY_SIGMA = 120  #240  # in pixel
+FIXATION_OVERLAY_SIGMA = 120  # in pixel
 
 # testing
-TURN_OFF_EYE_TRACKING = False
+TURN_OFF_EYE_TRACKING = True
 MOCK_PLAYERS = 2  # number of fake player for which a fake position is shown only in this client
 MOCK_POSITIONS = []  # the fake positions shown e.g.[(0.5, 0.5), (0.2, 0,3)] (in relative image coordinates)
 # if len(MOCK_POSITIONS) is smaller than MOCK_PLAYERS, the other positions are dynamically randomly changed

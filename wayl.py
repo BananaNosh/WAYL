@@ -12,7 +12,7 @@ from fixation_layering.fixation_layering import filter_image_with_positions, cal
     map_position_to_np_pixel
 from messaging.gaze_exchange import send_gaze, setup_gaze_exchange
 from view.ui_handler import initialise_screen, show_markers, show_calibration, show_image, draw_point_at_positions, \
-    map_position_between_screen_and_image
+    map_position_between_screen_and_image, activate_total_fullscreen
 
 
 def read_image():
@@ -41,6 +41,9 @@ def main_loop(_screen, _image, _gaze_stream):
         event = pygame.event.poll()
         if event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE:
             # finish on escape clicked
+            remote_positions_stream.stop()
+            if gaze_stream is not None:
+                gaze_stream.stopped = True
             break
         # only update after a given interval
         current_time = time.time()
@@ -65,7 +68,6 @@ def main_loop(_screen, _image, _gaze_stream):
         last_send_time = current_time
         # read position in pygame coordinates
         position = gaze_stream.read_position() if gaze_stream is not None else None
-        position = (0.5, 0.7)
         print(position)
         if position is not None:
             send_gaze(position)
@@ -85,8 +87,10 @@ if __name__ == '__main__':
     if not TURN_OFF_EYE_TRACKING:
         show_calibration()
     if FULLSCREEN:  # necessary here as calibration does not work with fullscreen
-        # activate_total_fullscreen(screen)
+        activate_total_fullscreen(screen)
         pass
     image = read_image()
     gaze_stream = prepare_gaze_reading()
     main_loop(screen, image, gaze_stream)
+    pygame.display.quit()
+    pygame.quit()

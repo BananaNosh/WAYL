@@ -28,6 +28,12 @@ class AbstractRemoteGazePositionStream(abc.ABC):
         Returns: (RemoteGazePositionStream) self
         """
 
+    def stop(self):
+        """
+        Stops the stream
+        """
+        self.stopped = True
+
     def save_gaze_from_message(self, message):
         """
         Reads the gaze from the given message and the sender id and saves it to received_gaze_positions
@@ -98,6 +104,13 @@ class PyreRemoteGazePositionStream(AbstractRemoteGazePositionStream):
         self.pyre_pipe = zhelper.zthread_fork(ctx, self.gaze_exchange_task)
         return self
 
+    def stop(self):
+        """
+        Stops the stream
+        """
+        super().stop()
+        self.pyre_pipe.send(STOP_MESSAGE.encode("utf-8"))
+
     def gaze_exchange_task(self, ctx, pipe):
         """
         Task for exchanging messages
@@ -116,7 +129,7 @@ class PyreRemoteGazePositionStream(AbstractRemoteGazePositionStream):
         poller.register(pipe, zmq.POLLIN)
         # noinspection PyUnresolvedReferences
         poller.register(n.socket(), zmq.POLLIN)
-        while True:
+        while not self.stopped:
             items = dict(poller.poll())
             print(n.socket(), items)
             # noinspection PyUnresolvedReferences

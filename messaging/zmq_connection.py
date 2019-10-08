@@ -1,6 +1,3 @@
-import time
-from threading import Thread
-
 from messaging.zmq_classes import Subscriber, get_own_ips, setup_publisher as _setup_publisher
 
 CONNECTION_TIMEOUT = 10000
